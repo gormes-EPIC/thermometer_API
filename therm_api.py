@@ -1,4 +1,7 @@
 from flask import Flask, jsonify, request
+import board
+import adafruit_dht
+dhtDevice = adafruit_dht.DHT11(board.D4, use_pulseio=False)
 
 app = Flask(__name__)
 
@@ -10,41 +13,23 @@ items = [
 # GET all items
 @app.route('/items', methods=['GET'])
 def get_items():
+    try:
+        temperature_c = dhtDevice.temperature
+        temperature_c = float(temperature_c)
+        if temperature_c == None:
+            temperature_c = 70
+        temp = temperature_c * (9 / 5) + 32
+        items[0]["temp"] = temp
+    except TypeError:
+        items[0]["temp"] = 70.5
+    except RuntimeError as error:
+        time.sleep(0.5)
+        items[0]["temp"] = 70.5
+    except Exception as error:
+        dhtDevice.exit()
+        raise error
     return jsonify(items)
 
-# # GET single item by ID
-# @app.route('/items/<int:item_id>', methods=['GET'])
-# def get_item(item_id):
-#     item = next((i for i in items if i["id"] == item_id), None)
-#     return jsonify(item) if item else ("Not found", 404)
-
-# POST create new item
-@app.route('/items', methods=['POST'])
-def create_item():
-    data = request.get_json()
-    new_item = {
-        "id": len(items) + 1,
-        "name": data["name"]
-    }
-    items.append(new_item)
-    return jsonify(new_item), 201
-
-# PUT update item
-@app.route('/items/<int:item_id>', methods=['PUT'])
-def update_item(item_id):
-    data = request.get_json()
-    item = next((i for i in items if i["id"] == item_id), None)
-    if item:
-        item["name"] = data["name"]
-        return jsonify(item)
-    return ("Not found", 404)
-
-# DELETE item
-@app.route('/items/<int:item_id>', methods=['DELETE'])
-def delete_item(item_id):
-    global items
-    items = [i for i in items if i["id"] != item_id]
-    return ("", 204)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
