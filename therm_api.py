@@ -4,8 +4,7 @@ app = Flask(__name__)
 
 # Example in-memory data
 items = [
-    {"id": 1, "name": "Item One"},
-    {"id": 2, "name": "Item Two"}
+    {"temp": 1}
 ]
 
 # GET all items
@@ -13,11 +12,11 @@ items = [
 def get_items():
     return jsonify(items)
 
-# GET single item by ID
-@app.route('/items/<int:item_id>', methods=['GET'])
-def get_item(item_id):
-    item = next((i for i in items if i["id"] == item_id), None)
-    return jsonify(item) if item else ("Not found", 404)
+# # GET single item by ID
+# @app.route('/items/<int:item_id>', methods=['GET'])
+# def get_item(item_id):
+#     item = next((i for i in items if i["id"] == item_id), None)
+#     return jsonify(item) if item else ("Not found", 404)
 
 # POST create new item
 @app.route('/items', methods=['POST'])
